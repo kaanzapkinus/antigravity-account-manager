@@ -1,0 +1,31 @@
+# Çalışma verisi, sırlar ve yerel durum — ASLA commit edilmez.
+# switch-history.json : hesap e-posta geçmiş kayıtları (PII)
+# agy-scheduler-state.json : pin/mod durumu ve hesap kimlikleri
+# switch-history.lock    : flock dosyası
+*.json.lock
+switch-history.json
+agy-scheduler-state.json
+agy-scheduler.pause
+
+# Profil verisi: OAuth token'ları ve google_accounts.json
+*.json
+!manifest.webmanifest
+
+# Token dosyaları
+*oauth-creds*.json
+*oauth-token*
+pending_pkce.json
+*.key
+*.pem
+*.crt
+*.env
+*.env.*
+
+# Yedek / geçici
+*.bak
+*.bak-*
+*.tmp
+*.log
+.DS_Store
+__pycache__/
+*.pyc

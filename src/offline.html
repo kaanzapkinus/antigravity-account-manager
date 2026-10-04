@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="tr" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#121214">
+  <meta name="color-scheme" content="dark">
+  <title>Bağlantı gerekli · Google Hesapları</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: #121214; }
+    body {
+      min-height: 100vh;
+      min-height: 100svh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 32px 24px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #f4f4f5;
+    }
+    main {
+      width: 100%;
+      max-width: 420px;
+      background: #1c1c1f;
+      border: 1px solid #27272a;
+      border-radius: 20px;
+      padding: 36px 28px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    .traffic-lights {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 24px;
+    }
+    .traffic-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .traffic-dot.red { background: #ff5f56; }
+    .traffic-dot.yellow { background: #ffbd2e; }
+    .traffic-dot.green { background: #27c93f; }
+    .symbol {
+      width: 64px;
+      height: 64px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 20px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 16px;
+      color: #f87171;
+    }
+    .brand {
+      margin: 0 0 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #a1a1aa;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+    p {
+      margin: 0 0 12px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #a1a1aa;
+    }
+    a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 24px;
+      margin-top: 14px;
+      border-radius: 10px;
+      background: #3b82f6;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+    a:hover { background: #2563eb; }
+    .privacy {
+      margin-top: 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #71717a;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="traffic-lights" aria-hidden="true">
+      <span class="traffic-dot red"></span>
+      <span class="traffic-dot yellow"></span>
+      <span class="traffic-dot green"></span>
+    </div>
+    <div class="symbol" aria-hidden="true">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 3l18 18M8.5 8.5a9 9 0 0 1 11 2M4.5 10.5a9 9 0 0 1 1.4-1.2M2 7a14.5 14.5 0 0 1 1.4-1M7 3.8A14.5 14.5 0 0 1 22 7M8.5 14a5 5 0 0 1 5.6-.9M12 18h.01"/>
+      </svg>
+    </div>
+    <p class="brand">Antigravity Hesap Yönetimi</p>
+    <h1>Bağlantı gerekli</h1>
+    <p>Hesaplarınızı görüntülemek ve işlem yapmak için sunucuya canlı bağlantı gerekiyor.</p>
+    <p>İnternet ve Tailscale bağlantınızı kontrol edip tekrar deneyin.</p>
+    <a href="/">Tekrar dene</a>
+    <p class="privacy">Gizliliğiniz için hesap bilgileri çevrimdışı saklanmaz.</p>
+  </main>
+</body>
+</html>

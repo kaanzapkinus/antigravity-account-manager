@@ -1,0 +1,2294 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1B1916">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hesaplar">
+<meta name="referrer" content="no-referrer">
+<title>Antigravity Hesap Yönetimi</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   AGY Hesap Yönetimi — amber panel
+   Tasarım: AGY-DESIGN.md · Görsel dil: ompweb warm-paper
+   Renk yalnız durum veya aile bildirir. Gölge yok. Dekoratif renk yok.
+   ========================================================================= */
+
+/* --- Light: sıcak kâğıt ------------------------------------------------- */
+:root,
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg: #FAF9F6;
+  --panel: #F2F0EA;
+  --panel-hover: #EAE7DF;
+  --panel-selected: #E5E0D4;
+  --line: #E2DDD2;
+  --line-soft: rgba(43, 40, 35, 0.08);
+  --text: #2B2823;
+  --text-muted: #69635A;
+  --text-dim: #8A8378;
+  --accent: #B03E22;
+  --accent-hover: #96331B;
+  --on-accent: #FFFFFF;
+  --accent-soft: rgba(176, 62, 34, 0.10);
+
+  --ok: #18794E;
+  --ok-soft: rgba(24, 121, 78, 0.10);
+  --warn: #8A5A00;
+  --warn-soft: rgba(138, 90, 0, 0.12);
+  --err: #B42318;
+  --err-soft: rgba(180, 35, 24, 0.10);
+
+  --fam-gemini: #059669;
+  --fam-claude: #7C3AED;
+}
+
+/* --- Dark: sıcak kül ----------------------------------------------------- */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #1B1916;
+  --panel: #231F1B;
+  --panel-hover: #2B2721;
+  --panel-selected: #332E26;
+  --line: #38322B;
+  --line-soft: rgba(235, 230, 220, 0.08);
+  --text: #EBE6DC;
+  --text-muted: #A39B8E;
+  --text-dim: #7C756A;
+  --accent: #E07B54;
+  --accent-hover: #E89371;
+  --on-accent: #1B1916;
+  --accent-soft: rgba(224, 123, 84, 0.12);
+
+  --ok: #69D5A5;
+  --ok-soft: rgba(105, 213, 165, 0.12);
+  --warn: #F0C36A;
+  --warn-soft: rgba(240, 195, 106, 0.12);
+  --err: #FF8A80;
+  --err-soft: rgba(255, 138, 128, 0.12);
+
+  --fam-gemini: #10B981;
+  --fam-claude: #A855F7;
+}
+
+/* --- Base ---------------------------------------------------------------- */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-feature-settings: "cv02", "cv03";
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.font-mono { font-family: var(--font-mono); }
+
+.mono-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+[hidden] { display: none !important; }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.shell {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 16px 40px;
+}
+
+/* --- Header (sticky) ----------------------------------------------------- */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 52px;
+  padding-top: env(safe-area-inset-top);
+  background: var(--bg);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.brand { min-width: 0; display: flex; align-items: baseline; gap: 8px; }
+
+.brand-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.brand-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+/* --- Buttons ------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.btn:hover:not(:disabled) { background: var(--panel-hover); border-color: var(--text-dim); }
+.btn:active:not(:disabled) { transform: scale(0.98); }
+.btn:disabled { color: var(--text-dim); cursor: not-allowed; }
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); color: var(--on-accent); }
+.btn-primary:disabled { background: transparent; color: var(--text-dim); }
+
+.btn-icon { width: 32px; padding: 0; color: var(--text-muted); }
+.btn-icon:hover:not(:disabled) { color: var(--text); }
+
+.btn-sm { height: 26px; padding: 0 8px; font-size: 12px; }
+
+.btn.is-loading { color: var(--text-dim); }
+.btn.is-success { border-color: var(--ok); color: var(--ok); background: var(--ok-soft); }
+.btn.is-delta { border-color: var(--warn); color: var(--warn); background: var(--warn-soft); }
+.btn.is-error { border-color: var(--err); color: var(--err); background: var(--err-soft); }
+
+.spin { display: inline-block; animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* --- Tabs (sticky) ------------------------------------------------------- */
+.tabs {
+  position: sticky;
+  top: 52px;
+  z-index: 25;
+  display: flex;
+  gap: 2px;
+  margin: 0 -16px;
+  padding: 0 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line-soft);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+
+.tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+.tab:hover { color: var(--text); background: var(--panel-hover); }
+.tab[aria-selected="true"] { color: var(--text); font-weight: 600; }
+.tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: 8px; right: 8px; bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+}
+
+.tab-count {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text-dim);
+}
+.tab[aria-selected="true"] .tab-count { background: var(--accent-soft); color: var(--accent); }
+
+.tabpanel { padding-top: 16px; }
+.tabpanel:focus { outline: none; }
+
+/* --- Status strip -------------------------------------------------------- */
+.status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.status-main { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1 1 240px; }
+.status-email {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.status-side { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.status-port { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+.status-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* --- Status dot ---------------------------------------------------------- */
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--text-dim);
+  box-shadow: 0 0 0 2px var(--panel);
+}
+.dot.ok { background: var(--ok); }
+.dot.warn { background: var(--warn); }
+.dot.err { background: var(--err); }
+.dot.accent { background: var(--accent); }
+.dot.live { animation: breathe 2s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+/* --- Chip ---------------------------------------------------------------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.chip.ok { color: var(--ok); background: var(--ok-soft); border-color: transparent; }
+.chip.warn { color: var(--warn); background: var(--warn-soft); border-color: transparent; }
+.chip.err { color: var(--err); background: var(--err-soft); border-color: transparent; }
+.chip.accent { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+
+/* --- Banner -------------------------------------------------------------- */
+.banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 13px;
+}
+.banner-text { min-width: 0; }
+.banner-headline { font-weight: 600; }
+.banner-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; word-break: break-word; }
+.banner-side { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.banner-time { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 11px; color: var(--text-dim); }
+
+.banner.is-loading { border-color: var(--accent); background: var(--accent-soft); }
+.banner.is-success { border-color: var(--ok); background: var(--ok-soft); }
+.banner.is-delta { border-color: var(--warn); background: var(--warn-soft); }
+.banner.is-error { border-color: var(--err); background: var(--err-soft); }
+
+.banner-icon { font-size: 13px; line-height: 1.4; }
+.banner.is-loading .banner-icon { color: var(--accent); animation: spin 0.9s linear infinite; display: inline-block; }
+
+.icon-btn {
+  width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 4px; background: transparent;
+  color: var(--text-dim); font-size: 15px; line-height: 1; cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.icon-btn:hover { background: var(--panel-hover); color: var(--text); }
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 13px;
+}
+
+/* --- Account cards ------------------------------------------------------- */
+.account-list { display: flex; flex-direction: column; gap: 12px; }
+
+.account-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 200ms ease;
+}
+.account-card:hover { border-color: var(--text-dim); }
+.account-card.is-active { border-color: var(--accent); }
+.account-card.has-quota-change { border-color: var(--warn); }
+
+.account-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.avatar {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--panel-hover);
+  border: 1px solid var(--line);
+  font-weight: 700; font-size: 14px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.account-card.is-active .avatar { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+.identity { min-width: 0; flex: 1; }
+.identity-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.identity-meta {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.account-action { flex-shrink: 0; }
+
+/* --- Quota families ------------------------------------------------------ */
+.family { padding: 12px 14px; }
+.family + .family { border-top: 1px solid var(--line-soft); }
+
+.family-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.family-name {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.family.gemini .family-name { color: var(--fam-gemini); }
+.family.claude .family-name { color: var(--fam-claude); }
+.family-desc { font-size: 11.5px; color: var(--text-muted); text-align: right; }
+
+.bucket-row {
+  display: grid;
+  grid-template-columns: 72px 66px minmax(60px, 1fr) minmax(90px, auto);
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+.bucket-row + .bucket-row { margin-top: 2px; }
+
+.bucket-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.bucket-value-wrap { display: flex; align-items: baseline; gap: 5px; }
+
+.bucket-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  font-size: 17px;
+  font-weight: 700;
+}
+.family.gemini .bucket-value { color: var(--fam-gemini); }
+.family.claude .bucket-value { color: var(--fam-claude); }
+.bucket-value.is-unknown { color: var(--text-dim); font-weight: 500; }
+
+.bucket-delta {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.bucket-delta.drop { color: var(--err); background: var(--err-soft); }
+.bucket-delta.gain { color: var(--ok); background: var(--ok-soft); }
+
+.bucket-track {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--panel-selected);
+  overflow: hidden;
+}
+.bucket-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  transition: width 500ms cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+.family.gemini .bucket-fill { background: var(--fam-gemini); }
+.family.claude .bucket-fill { background: var(--fam-claude); }
+
+.bucket-ghost {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  display: none;
+  z-index: 0;
+}
+.bucket-ghost.visible { display: block; }
+.bucket-ghost.drop { background: repeating-linear-gradient(-45deg, var(--err) 0 3px, transparent 3px 6px); opacity: 0.45; }
+.bucket-ghost.gain { background: var(--ok); opacity: 0.35; }
+
+.bucket-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.bucket-reset {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.bucket-delta-detail {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* --- Card footer (details) ---------------------------------------------- */
+.card-foot { border-top: 1px solid var(--line-soft); }
+
+.card-foot > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 12px;
+  color: var(--text-muted);
+  user-select: none;
+}
+.card-foot > summary::-webkit-details-marker { display: none; }
+.card-foot > summary:hover { background: var(--panel-hover); color: var(--text); }
+.card-foot > summary::after { content: "›"; font-size: 15px; color: var(--text-dim); transition: transform 160ms ease; }
+.card-foot[open] > summary::after { transform: rotate(90deg); }
+
+.card-foot-body { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 10px; }
+
+.kv { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 12px; }
+.kv-key { color: var(--text-muted); }
+.kv-val { font-family: var(--font-mono); font-size: 11.5px; color: var(--text); text-align: right; }
+
+.foot-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.foot-note { font-size: 11.5px; color: var(--text-dim); }
+
+.feedback { font-size: 12px; padding: 8px 10px; border-radius: 6px; background: var(--panel-hover); color: var(--text-muted); }
+.feedback.ok { color: var(--ok); background: var(--ok-soft); }
+.feedback.err { color: var(--err); background: var(--err-soft); }
+
+/* --- History list -------------------------------------------------------- */
+.history-panel { display: flex; flex-direction: column; gap: 10px; }
+
+.filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.filter-pill {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: Inter, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.filter-pill:hover { background: var(--panel-hover); color: var(--text); }
+.filter-pill.active { background: var(--panel-selected); border-color: var(--text-dim); color: var(--text); font-weight: 600; }
+.filter-count { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 10px; color: var(--text-dim); }
+.filter-pill.active .filter-count { color: var(--accent); }
+
+.search-row { display: flex; gap: 6px; }
+
+.input {
+  flex: 1;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  transition: border-color 120ms ease;
+}
+.input::placeholder { color: var(--text-dim); }
+.input:focus { border-color: var(--accent); outline: none; }
+
+.history-list {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.history-entry {
+  display: grid;
+  grid-template-columns: 2px 1fr;
+  gap: 10px;
+  padding: 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.history-entry:last-child { border-bottom: 0; }
+
+.entry-bar { background: var(--text-dim); }
+.entry-bar.scheduler { background: var(--accent); }
+.entry-bar.manual { background: var(--text-dim); }
+.entry-bar.pool { background: var(--ok); }
+.entry-bar.warmup { background: var(--warn); }
+.entry-bar.system { background: var(--text-dim); }
+
+.entry-body { padding: 10px 12px 10px 0; min-width: 0; }
+
+.entry-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.entry-trigger {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.entry-family {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--panel-hover);
+  color: var(--text-dim);
+}
+/* .status-pill JS kancasıdır; görünüm .chip ile gelir. */
+.status-pill { flex-shrink: 0; }
+.entry-time {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 10.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.entry-route {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text);
+  min-width: 0;
+}
+.entry-acc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entry-acc.dim { color: var(--text-muted); }
+.entry-arrow { color: var(--text-dim); flex-shrink: 0; }
+
+.entry-reason {
+  margin-top: 3px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entry-raw { margin-top: 6px; }
+.entry-raw > summary {
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.entry-raw > summary::-webkit-details-marker { display: none; }
+.entry-raw > summary:hover { color: var(--text-muted); }
+.entry-raw pre {
+  margin: 6px 0 0;
+  padding: 8px;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.history-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.history-note { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-dim); }
+
+.empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 13px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+}
+.empty.err { color: var(--err); border-color: var(--err); }
+
+/* --- Footer / add account ------------------------------------------------ */
+.page-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 0 8px;
+}
+.page-foot-note { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-dim); }
+
+/* --- Modal --------------------------------------------------------------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: color-mix(in srgb, var(--text) 24%, transparent);
+  backdrop-filter: blur(8px);
+  animation: fade-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.modal-card {
+  width: 100%;
+  max-width: 460px;
+  max-height: 88vh;
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  animation: rise-in 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes rise-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.modal-title { font-size: 15px; font-weight: 600; }
+.modal-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.modal-desc { margin: 0; font-size: 13px; color: var(--text-muted); }
+
+.modal-label { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
+
+.modal-status {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.modal-status.err { color: var(--err); border-color: var(--err); background: var(--err-soft); }
+.modal-status.ok { color: var(--ok); border-color: var(--ok); background: var(--ok-soft); }
+
+.modal-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.url-box {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+.log-box {
+  max-height: 200px;
+  overflow: auto;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.steps { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; color: var(--text-muted); }
+
+/* --- Responsive ---------------------------------------------------------- */
+@media (max-width: 560px) {
+  .shell { padding: 0 12px 32px; }
+  .tabs { margin: 0 -12px; padding: 0 12px; }
+  .brand-sub { display: none; }
+  .bucket-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "label value" "track track" "meta meta";
+    gap: 4px 10px;
+    padding: 6px 0;
+  }
+  .bucket-label { grid-area: label; }
+  .bucket-value-wrap { grid-area: value; justify-content: flex-end; }
+  .bucket-track { grid-area: track; }
+  .bucket-meta { grid-area: meta; }
+  .family-head { flex-direction: column; gap: 2px; }
+  .family-desc { text-align: left; }
+  .status-strip { flex-direction: column; align-items: stretch; gap: 10px; }
+  .status-main { flex: 0 0 auto; }
+  .status-side { flex-direction: column; align-items: stretch; gap: 8px; }
+  .status-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .status-actions .btn { width: 100%; }
+  .status-actions #next-account { grid-column: 1 / -1; }
+}
+
+@media (min-width: 561px) {
+  .btn-icon { width: 32px; height: 32px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .bucket-fill { transition: none; }
+}
+</style>
+<div class="shell">
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="brand">
+      <h1 class="brand-title">AGY Hesap Yönetimi</h1>
+      <span class="brand-sub">Antigravity</span>
+    </div>
+    <div class="header-actions">
+      <button id="install-btn" class="btn btn-icon" type="button" hidden title="Uygulamayı yükle" aria-label="Uygulamayı yükle">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path>
+        </svg>
+      </button>
+      <button id="theme-btn" class="btn btn-icon" type="button" title="Temayı değiştir" aria-label="Temayı değiştir">
+        <span id="theme-icon" aria-hidden="true">☾</span>
+      </button>
+      <button id="refresh" class="btn btn-icon" type="button" data-network title="Limitleri yenile" aria-label="Limitleri yenile">
+        <span id="refresh-icon" class="refresh-icon" aria-hidden="true">↻</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs" role="tablist" aria-label="Panel bölümleri">
+    <button id="tab-accounts" class="tab" role="tab" aria-selected="true" aria-controls="panel-accounts" type="button">
+      Hesaplar <span class="tab-count" id="tab-count-accounts">0</span>
+    </button>
+    <button id="tab-history" class="tab" role="tab" aria-selected="false" aria-controls="panel-history" type="button">
+      Geçiş Günlüğü <span class="tab-count" id="tab-count-history">0</span>
+    </button>
+  </div>
+
+  <div id="connection-notice" class="notice" hidden role="alert"></div>
+
+  <!-- Refresh banner -->
+  <div id="refresh-banner" class="banner" role="status" aria-live="polite" hidden>
+    <div class="banner-text">
+      <div class="banner-headline"><span id="refresh-banner-icon" class="banner-icon" aria-hidden="true">↻</span> <span id="refresh-banner-text">Taranıyor…</span></div>
+      <div class="banner-sub" id="refresh-banner-sub"></div>
+    </div>
+    <div class="banner-side">
+      <span class="banner-time" id="refresh-banner-time"></span>
+      <button id="refresh-banner-close" class="icon-btn" type="button" title="Kapat" aria-label="Kapat">×</button>
+    </div>
+  </div>
+
+  <!-- ============================ HESAPLAR ============================ -->
+  <section id="panel-accounts" class="tabpanel" role="tabpanel" aria-labelledby="tab-accounts" tabindex="-1">
+
+    <div class="status-strip">
+      <div class="status-main">
+        <span id="hero-dot" class="dot" aria-hidden="true"></span>
+        <span id="hero-email" class="status-email">Yükleniyor…</span>
+      </div>
+      <div class="status-side">
+        <span id="hero-proxy-status" class="status-port">Port 8045</span>
+        <span class="status-actions">
+          <button class="btn btn-primary" id="next-account" type="button" data-network data-locked="true" disabled>
+            Sonraki hesap →
+          </button>
+          <button class="btn" id="clear-pin-btn" type="button" data-network data-mode="pool" hidden>
+            Havuza dön
+          </button>
+          <button class="btn" id="auto-btn" type="button" data-network data-mode="auto" hidden>
+            Otomatik
+          </button>
+        </span>
+      </div>
+    </div>
+
+    <div id="next-account-reason" class="foot-note" style="margin:-10px 2px 14px;"></div>
+
+    <div class="account-list" id="accounts" aria-live="polite"></div>
+
+    <div class="empty" id="empty-state" hidden>Bağlı Google hesabı bulunamadı.</div>
+
+    <div class="page-foot">
+      <button class="btn btn-primary" id="login-start" type="button" data-network>Yeni Google Hesabı Ekle</button>
+      <div class="page-foot-note"><span id="last-updated">Yenileniyor…</span> · Homelab Antigravity Hub</div>
+    </div>
+  </section>
+
+  <!-- ============================ GÜNLÜK ============================= -->
+  <section id="panel-history" class="tabpanel" role="tabpanel" aria-labelledby="tab-history" tabindex="-1" hidden>
+    <div class="history-panel">
+
+      <div class="filter-row" id="history-filters">
+        <button type="button" class="filter-pill active" data-filter="all">Tümü <span class="filter-count" id="h-cnt-all">0</span></button>
+        <button type="button" class="filter-pill" data-filter="scheduler">Otomatik <span class="filter-count" id="h-cnt-scheduler">0</span></button>
+        <button type="button" class="filter-pill" data-filter="manual">Manuel <span class="filter-count" id="h-cnt-manual">0</span></button>
+        <button type="button" class="filter-pill" data-filter="round_robin">Havuz <span class="filter-count" id="h-cnt-pool">0</span></button>
+      </div>
+
+      <div class="search-row">
+        <input type="search" id="history-search" class="input" placeholder="Ara: e-posta, neden, aile" autocomplete="off" aria-label="Geçiş günlüğünde ara" />
+        <button id="history-refresh-btn" class="btn btn-icon" type="button" title="Günlüğü yenile" aria-label="Günlüğü yenile">
+          <span class="refresh-icon" aria-hidden="true">↻</span>
+        </button>
+      </div>
+
+      <div id="history-timeline" class="history-list"></div>
+
+      <div id="history-empty" class="empty" hidden>Kriterlere uygun geçiş kaydı yok.</div>
+
+      <div class="history-foot">
+        <span id="history-status-note" class="history-note">—</span>
+        <button id="history-load-all" class="btn btn-sm" type="button" hidden>Tümünü göster</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Login Flow Modal -->
+<div id="login-modal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="login-modal-title">
+  <div class="modal-card">
+    <div class="modal-head">
+      <span id="login-modal-title" class="modal-title">Yeni Google Hesabı Ekle</span>
+      <button id="login-modal-close" class="icon-btn" type="button" aria-label="Kapat">✕</button>
+    </div>
+    <div class="modal-body" id="login-modal-body"></div>
+  </div>
+</div>
+
+<!-- PWA Install Guide Modal -->
+<div id="install-modal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="install-modal-title">
+  <div class="modal-card">
+    <div class="modal-head">
+      <span id="install-modal-title" class="modal-title">Uygulamayı Yükle</span>
+      <button id="install-modal-close" class="icon-btn" type="button" aria-label="Kapat">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-desc" id="install-guide-text">
+        Bu paneli macOS Dock'una veya ana ekranınıza ekleyerek bağımsız bir masaüstü uygulaması gibi kullanabilirsiniz.
+      </p>
+      <div class="steps" id="install-guide-steps"></div>
+      <button id="install-guide-done" class="btn btn-primary" type="button" style="align-self:flex-start;">Tamam</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ==========================================================================
+   AGY Hesap Yönetimi — amber panel
+   DOM sözleşmesi: #tab-accounts / #tab-history panelleri, tema düğmesi,
+   düz hesap kartları, tek sütun günlük listesi.
+   ========================================================================== */
+
+const $ = id => document.getElementById(id);
+const text = (node, value) => { if (node && node.textContent !== value) node.textContent = value; };
+
+let installPrompt = null;
+let refreshFlight = null;
+let refreshController = null;
+let lastUpdated = 0;
+let refreshVersion = 0;
+let busy = false;
+let currentAccountsData = [];
+let currentProxyData = {};
+let activeTab = 'accounts';
+let bannerTimer = null;
+
+/* ---------------------------------------------------------------- tema --- */
+const THEME_KEY = 'agy-theme';
+const themeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const btn = $('theme-btn');
+  const icon = $('theme-icon');
+  if (icon) icon.textContent = theme === 'dark' ? '☾' : '☀';
+  if (btn) btn.setAttribute('aria-label', theme === 'dark' ? 'Aydınlığa geç' : 'Karanlığa geç');
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', theme === 'dark' ? '#1B1916' : '#FAF9F6');
+}
+
+function currentTheme() {
+  return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+}
+
+function initTheme() {
+  let stored = null;
+  try { stored = localStorage.getItem(THEME_KEY); } catch (e) { stored = null; }
+  applyTheme(stored === 'light' || stored === 'dark' ? stored : (themeQuery.matches ? 'dark' : 'light'));
+
+  const btn = $('theme-btn');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      const next = currentTheme() === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    });
+  }
+
+  // Sistem tercihi yalnızca kullanıcı henüz seçim yapmadıysa izlenir.
+  const onSystemChange = () => {
+    let storedNow = null;
+    try { storedNow = localStorage.getItem(THEME_KEY); } catch (e) { storedNow = null; }
+    if (storedNow === 'light' || storedNow === 'dark') return;
+    applyTheme(themeQuery.matches ? 'dark' : 'light');
+  };
+  if (typeof themeQuery.addEventListener === 'function') themeQuery.addEventListener('change', onSystemChange);
+  else if (typeof themeQuery.addListener === 'function') themeQuery.addListener(onSystemChange);
+}
+
+/* --------------------------------------------------------------- sekme --- */
+function setTab(name) {
+  activeTab = name === 'history' ? 'history' : 'accounts';
+  const isAcc = activeTab === 'accounts';
+  const accTab = $('tab-accounts');
+  const hisTab = $('tab-history');
+  const accPanel = $('panel-accounts');
+  const hisPanel = $('panel-history');
+  if (accTab) accTab.setAttribute('aria-selected', isAcc ? 'true' : 'false');
+  if (hisTab) hisTab.setAttribute('aria-selected', isAcc ? 'false' : 'true');
+  if (accPanel) accPanel.hidden = !isAcc;
+  if (hisPanel) hisPanel.hidden = isAcc;
+  (isAcc ? accTab : hisTab)?.focus({ preventScroll: true });
+  if (!isAcc) loadSwitchHistory(false);
+}
+
+function initTabs() {
+  const accTab = $('tab-accounts');
+  const hisTab = $('tab-history');
+  if (accTab) accTab.addEventListener('click', () => setTab('accounts'));
+  if (hisTab) hisTab.addEventListener('click', () => setTab('history'));
+
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    const target = event.target;
+    if (!accTab || !hisTab) return;
+    if (target !== accTab && target !== hisTab) return;
+    event.preventDefault();
+    setTab(activeTab === 'accounts' ? 'history' : 'accounts');
+  });
+}
+
+/* --------------------------------------------------------------- yardım --- */
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+const polandResetFormatter = new Intl.DateTimeFormat('tr-TR', {
+  timeZone: 'Europe/Warsaw',
+  day: '2-digit',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false
+});
+
+const polandHistoryFormatter = new Intl.DateTimeFormat('tr-TR', {
+  timeZone: 'Europe/Warsaw',
+  day: '2-digit',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false
+});
+
+function fmtResetLeft(resetTime) {
+  if (!resetTime) return '';
+  const time = typeof resetTime === 'string' ? Date.parse(resetTime) : Number(resetTime);
+  if (!time || !Number.isFinite(time)) return '';
+  const seconds = Math.floor((time - Date.now()) / 1000);
+  let rel;
+  if (seconds <= 0) {
+    rel = '↺ Süre doldu (yenileme bekleniyor)';
+  } else {
+    const d = Math.floor(seconds / 86400);
+    const h = Math.floor((seconds % 86400) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (d > 0) rel = `↺ ${d}g ${h}s sonra`;
+    else if (h > 0) rel = `↺ ${h}s ${m}dk sonra`;
+    else rel = `↺ ${m}dk sonra`;
+  }
+  let poland = '';
+  try { poland = polandResetFormatter.format(new Date(time)); } catch (e) {}
+  return poland ? `${rel} · ${poland}` : rel;
+}
+
+function formatHistoryDate(isoStr) {
+  if (!isoStr) return '';
+  const d = new Date(isoStr);
+  if (isNaN(d.getTime())) return String(isoStr);
+  const diffSec = Math.floor((Date.now() - d.getTime()) / 1000);
+  let poland = '';
+  try { poland = polandHistoryFormatter.format(d); } catch (e) { poland = ''; }
+  if (diffSec < 60) return poland ? `Az önce · ${poland}` : 'Az önce';
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)} dk önce · ${poland}`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)} sa önce · ${poland}`;
+  return `${poland} (PL)`;
+}
+
+function timeAgo(value, future) {
+  if (!value) return 'Bilinmiyor';
+  const time = typeof value === 'string' ? Date.parse(value) : Number(value);
+  if (!time || !Number.isFinite(time)) return 'Bilinmiyor';
+  const seconds = (future ? time - Date.now() : Date.now() - time) / 1000;
+  if (seconds < 60) return future ? 'Yakında' : 'Az önce';
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  const label = days ? days + ' gün' : hours ? hours + ' saat' : minutes + ' dakika';
+  return label + (future ? ' sonra' : ' önce');
+}
+
+function setConnection(reason) {
+  const notice = $('connection-notice');
+  if (!notice) return;
+  notice.hidden = !reason;
+  text(notice, reason || '');
+}
+
+function syncButtons() {
+  const disabled = busy || !navigator.onLine;
+  document.querySelectorAll('button[data-network]').forEach(btn => {
+    btn.disabled = disabled || btn.dataset.locked === 'true';
+  });
+}
+
+function setButtonAvailability(btn, reason) {
+  if (!btn) return;
+  btn.dataset.locked = reason ? 'true' : 'false';
+  btn.title = reason || '';
+  btn.disabled = Boolean(reason) || busy || !navigator.onLine;
+}
+
+async function request(path, options) {
+  const opts = options || {};
+  const headers = Object.assign({ 'Accept': 'application/json' }, opts.headers || {});
+  let body = opts.body;
+  if (body && typeof body === 'object') {
+    headers['Content-Type'] = 'application/json';
+    body = JSON.stringify(body);
+  }
+  const res = await fetch(path, {
+    method: opts.method || (body ? 'POST' : 'GET'),
+    headers,
+    body,
+    cache: 'no-store',
+    signal: opts.signal,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data?.ok === false) {
+    throw new Error(data?.err || data?.error || data?.out || data?.status || (res.ok ? 'İşlem başarısız' : 'HTTP ' + res.status));
+  }
+  return data;
+}
+
+/* ------------------------------------------------------ servis worker --- */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(err => {
+    console.error('Service worker kaydı başarısız:', err);
+  });
+}
+
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function syncInstallBtn() {
+  const btn = $('install-btn');
+  if (!btn) return;
+  btn.hidden = isStandalone();
+}
+
+syncInstallBtn();
+try {
+  window.matchMedia('(display-mode: standalone)').addEventListener('change', syncInstallBtn);
+} catch (e) {}
+
+window.addEventListener('beforeinstallprompt', event => {
+  event.preventDefault();
+  installPrompt = event;
+  syncInstallBtn();
+});
+
+window.addEventListener('appinstalled', () => {
+  installPrompt = null;
+  syncInstallBtn();
+});
+
+function openInstallGuideModal() {
+  const steps = $('install-guide-steps');
+  if (!steps) return;
+  const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+  const items = isMac
+    ? ['Chrome veya Edge adres çubuğundaki kurulum simgesine tıklayın', 'Sonra “Dock’a Ekle” / “Yana Sabitle” seçin', 'Panel bağımsız bir uygulama penceresi olarak açılır']
+    : ['Tarayıcı menüsünden “Ana ekrana ekle” / “Yükle” seçin', 'Uygulama ana ekranınıza eklenir', 'Panel tam ekran olarak açılır'];
+  steps.innerHTML = items.map(item => `<div>· ${escapeHtml(item)}</div>`).join('');
+  const modal = $('install-modal');
+  if (modal) modal.hidden = false;
+}
+
+$('install-btn').addEventListener('click', async () => {
+  if (installPrompt) {
+    installPrompt.prompt();
+    const res = await installPrompt.userChoice;
+    if (res && res.outcome === 'accepted') {
+      installPrompt = null;
+      syncInstallBtn();
+    }
+  } else {
+    openInstallGuideModal();
+  }
+});
+
+$('install-modal-close').addEventListener('click', () => { $('install-modal').hidden = true; });
+$('install-guide-done').addEventListener('click', () => { $('install-modal').hidden = true; });
+$('install-modal').addEventListener('click', e => {
+  if (e.target === $('install-modal')) $('install-modal').hidden = true;
+});
+
+/* ------------------------------------------------------------ ağ durumu --- */
+window.addEventListener('online', () => { setConnection(''); syncButtons(); loadSnapshot(true); });
+window.addEventListener('offline', () => { setConnection('Çevrimdışısınız.'); syncButtons(); });
+
+/* ------------------------------------------------------------- rota --- */
+function getCardKey(acc) {
+  return acc.email || acc.dir || acc.proxy?.id || 'unknown';
+}
+
+function isProxyPreferred(acc) {
+  const preferredId = currentProxyData.preferred_account_id;
+  return Boolean(preferredId && acc?.proxy?.id === preferredId);
+}
+
+function actionUnavailableReason(acc, action) {
+  if (action === 'switch') {
+    if (!acc.proxy?.id) return 'Bu hesap proxy hesabı değil.';
+    if (!currentProxyData.ok) return 'Proxy API kullanılamıyor.';
+    if (acc.proxy.disabled) return acc.proxy.disabled_reason || 'Proxy hesabı devre dışı.';
+    if (acc.proxy.validation_blocked) return acc.proxy.validation_blocked_reason || 'Hesap doğrulaması gerekli.';
+    if (isProxyPreferred(acc)) return 'Zaten proxy tercihi.';
+    return '';
+  }
+  if (action === 'test' || action === 'import') {
+    if (typeof acc.dir !== 'string' || !acc.dir.trim()) return 'Yerel CLI profili yok; önce Google hesabıyla giriş yapın.';
+    if (!acc.has_token) return 'CLI tokenı yok; yeniden giriş yapın.';
+    if (action === 'import' && !acc.has_refresh) return 'Yenileme tokenı yok; yeniden giriş yapın.';
+    if (action === 'import' && !acc.email) return 'CLI profilinin hesap e-postası bilinmiyor; yeniden giriş yapın.';
+    return '';
+  }
+  return 'Desteklenmeyen işlem.';
+}
+
+function nextProxyAccount() {
+  const start = currentAccountsData.findIndex(isProxyPreferred);
+  if (start < 0) return null;
+  for (let offset = 1; offset <= currentAccountsData.length; offset++) {
+    const acc = currentAccountsData[(start + offset) % currentAccountsData.length];
+    if (!actionUnavailableReason(acc, 'switch')) return acc;
+  }
+  return null;
+}
+
+/* --------------------------------------------------------- kota önbelleği --- */
+const quotaHistoryCache = new Map();
+
+function buildAccountCard(key) {
+  const el = document.createElement('article');
+  el.className = 'account-card';
+  const bucketRow = (family, prefix, label) => `
+      <div class="bucket-row">
+        <span class="bucket-label">${label}</span>
+        <div class="bucket-value-wrap">
+          <span class="bucket-value ${prefix}-pct is-unknown">--%</span>
+          <span class="bucket-delta ${prefix}-delta" hidden></span>
+        </div>
+        <div class="bucket-track">
+          <div class="bucket-ghost ${prefix}-ghost"></div>
+          <div class="bucket-fill ${prefix}-bar" style="width:0%"></div>
+        </div>
+        <div class="bucket-meta">
+          <span class="bucket-reset ${prefix}-rst"></span>
+          <span class="bucket-delta-detail ${prefix}-detail" hidden></span>
+        </div>
+      </div>`;
+
+  el.innerHTML = `
+    <div class="account-head">
+      <div class="avatar" aria-hidden="true"></div>
+      <div class="identity">
+        <h3 class="identity-name"></h3>
+        <div class="identity-meta">
+          <span class="status-pill chip"></span>
+          <span class="status-extra"></span>
+        </div>
+      </div>
+      <button class="btn btn-sm account-action" type="button" data-network data-action="switch">Proxy tercihi yap</button>
+    </div>
+
+    <div class="family gemini">
+      <div class="family-head">
+        <span class="family-name">Antigravity (Gemini)</span>
+        <span class="family-desc">Flash &amp; Pro paylaşımlı havuz</span>
+      </div>
+      ${bucketRow('gemini', 'gemini-5h', '5 saatlik')}
+      ${bucketRow('gemini', 'gemini-wk', 'Haftalık')}
+    </div>
+
+    <div class="family claude">
+      <div class="family-head">
+        <span class="family-name">Claude / GPT</span>
+        <span class="family-desc">Sonnet, Opus &amp; OpenAI</span>
+      </div>
+      ${bucketRow('claude', 'claude-5h', '5 saatlik')}
+      ${bucketRow('claude', 'claude-wk', 'Haftalık')}
+    </div>
+
+    <details class="card-foot">
+      <summary>Gelişmiş işlemler &amp; kaynak durumu</summary>
+      <div class="card-foot-body">
+        <div class="kv"><span class="kv-key">CLI Profili</span><span class="kv-val source-cli">—</span></div>
+        <div class="kv"><span class="kv-key">OMP Vault</span><span class="kv-val source-omp">—</span></div>
+        <div class="foot-actions">
+          <button class="btn btn-sm" type="button" data-network data-action="test">CLI test et</button>
+          <button class="btn btn-sm" type="button" data-network data-action="import">OMP'ye aktar</button>
+        </div>
+        <div class="foot-note action-availability"></div>
+        <div class="feedback action-feedback" hidden></div>
+      </div>
+    </details>
+  `;
+
+  const card = { element: el, key, data: null };
+  el.addEventListener('click', event => {
+    const btn = event.target.closest('button[data-action]');
+    if (btn && !btn.disabled) handleAction(card, btn);
+  });
+  return card;
+}
+
+function updateBucketUI(cardEl, prefix, currentPct, prevPct, resetTime, isManualRefresh, bucketLabel) {
+  const pctEl = cardEl.querySelector(`.${prefix}-pct`);
+  const deltaBadge = cardEl.querySelector(`.${prefix}-delta`);
+  const bar = cardEl.querySelector(`.${prefix}-bar`);
+  const ghost = cardEl.querySelector(`.${prefix}-ghost`);
+  const rstEl = cardEl.querySelector(`.${prefix}-rst`);
+  const detailEl = cardEl.querySelector(`.${prefix}-detail`);
+
+  const hasPct = currentPct !== undefined && currentPct !== null && Number.isFinite(currentPct);
+  const curr = hasPct ? Math.min(100, Math.max(0, currentPct)) : null;
+
+  if (pctEl) {
+    pctEl.classList.toggle('is-unknown', !hasPct);
+    text(pctEl, hasPct ? `${curr}%` : '--%');
+  }
+  if (bar) bar.style.width = hasPct ? `${curr}%` : '0%';
+  if (rstEl) {
+    rstEl.dataset.resetTime = resetTime || '';
+    text(rstEl, fmtResetLeft(resetTime));
+  }
+
+  const resetDelta = () => {
+    if (ghost) {
+      ghost.className = `bucket-ghost ${prefix}-ghost`;
+      ghost.style.width = '0%';
+    }
+    if (deltaBadge) deltaBadge.hidden = true;
+    if (detailEl) detailEl.hidden = true;
+  };
+
+  let change = null;
+  if (prevPct !== undefined && prevPct !== null && hasPct && isManualRefresh) {
+    const diff = Math.round((curr - prevPct) * 10) / 10;
+    if (Math.abs(diff) >= 0.1) {
+      change = { diff, prev: prevPct, curr, label: bucketLabel };
+      if (ghost) {
+        ghost.style.width = `${Math.min(100, Math.max(0, prevPct))}%`;
+        ghost.className = `bucket-ghost ${prefix}-ghost ${diff < 0 ? 'drop' : 'gain'} visible`;
+      }
+      if (deltaBadge) {
+        deltaBadge.hidden = false;
+        deltaBadge.className = `bucket-delta ${prefix}-delta ${diff < 0 ? 'drop' : 'gain'}`;
+        text(deltaBadge, `${diff < 0 ? '▼' : '▲'} ${diff}`);
+      }
+      if (detailEl) {
+        detailEl.hidden = false;
+        text(detailEl, `önceki ${prevPct} → ${curr} puan`);
+      }
+    } else {
+      resetDelta();
+    }
+  } else if (!isManualRefresh) {
+    resetDelta();
+  }
+  return change;
+}
+
+function updateAccountCard(card, acc, isManualRefresh = false) {
+  card.data = acc;
+  const el = card.element;
+  const active = isProxyPreferred(acc);
+  const email = acc.email || 'İsimsiz Hesap';
+  const initial = email[0] || 'G';
+
+  el.classList.toggle('is-active', active);
+
+  const avatar = el.querySelector('.avatar');
+  text(avatar, initial);
+  avatar.title = email;
+
+  const nameEl = el.querySelector('.identity-name');
+  text(nameEl, email);
+  nameEl.title = email;
+
+  const pill = el.querySelector('.status-pill');
+  const extra = el.querySelector('.status-extra');
+  const switchBtn = el.querySelector('.account-action');
+
+  // status-pill seçici kancası her render'da korunur; yalnız durum sınıfları değişir.
+  if (active) {
+    pill.className = 'status-pill chip accent';
+    pill.innerHTML = '<span class="dot accent" aria-hidden="true"></span>Proxy tercihi';
+    text(extra, 'proxy hesabı · rota garantisi değil');
+    switchBtn.className = 'btn btn-sm account-action';
+    switchBtn.removeAttribute('data-action');
+    switchBtn.removeAttribute('data-network');
+    switchBtn.disabled = true;
+    switchBtn.textContent = 'Proxy tercihi';
+  } else {
+    pill.className = 'status-pill chip';
+    pill.innerHTML = `<span class="dot" aria-hidden="true"></span>${escapeHtml(acc.proxy?.id ? 'Proxy hesabı' : 'Yerel hesap')}`;
+    text(extra, actionUnavailableReason(acc, 'switch') || 'proxy tercihi seçilebilir');
+    switchBtn.className = 'btn btn-sm account-action';
+    switchBtn.dataset.action = 'switch';
+    switchBtn.setAttribute('data-network', '');
+    switchBtn.textContent = 'Proxy tercihi yap';
+  }
+
+  const unavailable = [];
+  el.querySelectorAll('button[data-action]').forEach(btn => {
+    const reason = actionUnavailableReason(acc, btn.dataset.action);
+    setButtonAvailability(btn, reason);
+    if (reason && btn.dataset.action !== 'switch') unavailable.push(`${btn.textContent.trim()}: ${reason}`);
+  });
+  text(el.querySelector('.action-availability'), unavailable.join(' · '));
+
+  // Quota parsing: eksik veri null kalır, %100 varsayılmaz.
+  let g5Pct = null, gWkPct = null, c5Pct = null, cWkPct = null;
+  let g5Rst = null, gWkRst = null, c5Rst = null, cWkRst = null;
+
+  const ai = acc.proxy?.ai_limits;
+  if (ai) {
+    if (ai.gemini) {
+      g5Pct = ai.gemini.p5?.percentage ?? null;
+      g5Rst = ai.gemini.p5?.reset_time;
+      gWkPct = ai.gemini.weekly?.percentage ?? null;
+      gWkRst = ai.gemini.weekly?.reset_time;
+    }
+    if (ai.claude_gpt) {
+      c5Pct = ai.claude_gpt.p5?.percentage ?? null;
+      c5Rst = ai.claude_gpt.p5?.reset_time;
+      cWkPct = ai.claude_gpt.weekly?.percentage ?? null;
+      cWkRst = ai.claude_gpt.weekly?.reset_time;
+    }
+  } else {
+    (acc.proxy?.quota_groups || []).forEach(g => {
+      const isGem = (g.display_name || '').toLowerCase().includes('gemini');
+      (g.buckets || []).forEach(b => {
+        const rem = b.remaining_fraction !== undefined && b.remaining_fraction !== null
+          ? Math.round(Number(b.remaining_fraction) * 100)
+          : null;
+        const rst = b.reset_time;
+        if (isGem && b.window === '5h') { g5Pct = rem; g5Rst = rst; }
+        if (isGem && b.window === 'weekly') { gWkPct = rem; gWkRst = rst; }
+        if (!isGem && b.window === '5h') { c5Pct = rem; c5Rst = rst; }
+        if (!isGem && b.window === 'weekly') { cWkPct = rem; cWkRst = rst; }
+      });
+    });
+  }
+
+  const prev = quotaHistoryCache.get(card.key);
+  const chG5 = updateBucketUI(el, 'gemini-5h', g5Pct, prev?.g5Pct, g5Rst, isManualRefresh, 'Gemini 5 saatlik');
+  const chGWk = updateBucketUI(el, 'gemini-wk', gWkPct, prev?.gWkPct, gWkRst, isManualRefresh, 'Gemini haftalık');
+  const chC5 = updateBucketUI(el, 'claude-5h', c5Pct, prev?.c5Pct, c5Rst, isManualRefresh, 'Claude 5 saatlik');
+  const chCWk = updateBucketUI(el, 'claude-wk', cWkPct, prev?.cWkPct, cWkRst, isManualRefresh, 'Claude haftalık');
+
+  quotaHistoryCache.set(card.key, { g5Pct, gWkPct, c5Pct, cWkPct });
+
+  const changes = [chG5, chGWk, chC5, chCWk].filter(Boolean);
+  if (changes.length > 0) el.classList.add('has-quota-change');
+  else if (!isManualRefresh) el.classList.remove('has-quota-change');
+
+  const cliDesc = !acc.dir
+    ? 'Yerel profil yok'
+    : acc.has_token
+      ? `Token mevcut · ${timeAgo(acc.cli_refresh)} yenilendi`
+      : 'Token yok';
+  text(el.querySelector('.source-cli'), cliDesc);
+
+  let ompDesc = 'Bağlı değil';
+  if (acc.omp) {
+    ompDesc = acc.block_google || acc.block_anthropic
+      ? 'Vault kaydı var · karantina mevcut'
+      : 'Vault kaydı var';
+  }
+  text(el.querySelector('.source-omp'), ompDesc);
+
+  return changes;
+}
+
+function updateHero(accounts, proxy) {
+  const preferred = accounts.find(isProxyPreferred);
+  const dot = $('hero-dot');
+  const ok = proxy.ok !== false;
+
+  if (dot) dot.className = 'dot ' + (ok ? 'ok live' : 'err');
+
+  text($('hero-email'),
+    preferred?.email
+      || (proxy.preferred_account_id ? 'Tercih edilen hesap listede yok' : 'Serbest dağıtım (havuz modu)'));
+
+  const current = accounts.find(acc => acc.proxy?.id && acc.proxy.id === proxy.current_account_id);
+  const currentLabel = current?.email
+    || (proxy.current_account_id ? 'Listede olmayan hesap' : 'Seçilmemiş');
+  const running = !ok ? 'kullanılamıyor' : proxy.running ? 'çalışıyor' : 'beklemede';
+  text($('hero-proxy-status'), `Port 8045 · ${running} · ${currentLabel}`);
+
+  const blocked = nextProxyAccount() ? '' : 'Seçilebilecek başka uygun proxy hesabı yok.';
+  const reason = !ok ? 'Proxy API kullanılamıyor.' : blocked;
+  setButtonAvailability($('next-account'), reason);
+  text($('next-account-reason'), reason);
+
+  const clearBtn = $('clear-pin-btn');
+  if (clearBtn) clearBtn.hidden = !proxy.preferred_account_id;
+  const autoBtn = $('auto-btn');
+  if (autoBtn) autoBtn.hidden = !proxy.preferred_account_id;
+}
+
+function tickResetTimers() {
+  document.querySelectorAll('.account-card').forEach(el => {
+    ['gemini-5h', 'gemini-wk', 'claude-5h', 'claude-wk'].forEach(prefix => {
+      const rstEl = el.querySelector(`.${prefix}-rst`);
+      if (rstEl && rstEl.dataset.resetTime) text(rstEl, fmtResetLeft(rstEl.dataset.resetTime));
+    });
+  });
+}
+setInterval(tickResetTimers, 10000);
+
+/* ------------------------------------------------------------ snapshot --- */
+async function loadSnapshot(force, isManualRefresh = false) {
+  const refreshBtn = $('refresh');
+  const banner = $('refresh-banner');
+
+  if (refreshFlight) {
+    if (isManualRefresh) {
+      refreshBtn.classList.add('is-loading');
+      refreshBtn.disabled = true;
+      if (banner) {
+        banner.hidden = false;
+        banner.className = 'banner is-loading';
+        text($('refresh-banner-icon'), '↻');
+        text($('refresh-banner-text'), 'Devam eden tarama bekleniyor…');
+      }
+    }
+    return refreshFlight;
+  }
+
+  const version = ++refreshVersion;
+  const controller = new AbortController();
+  refreshController = controller;
+  const startTime = performance.now();
+
+  refreshBtn.classList.add('is-loading');
+  if (isManualRefresh) {
+    refreshBtn.disabled = true;
+    if (banner) {
+      banner.hidden = false;
+      banner.className = 'banner is-loading';
+      text($('refresh-banner-icon'), '↻');
+      text($('refresh-banner-text'), 'Limitler ve proxy durumu taranıyor…');
+      text($('refresh-banner-sub'), 'Port 8045 ve yerel hesap profilleri okunuyor.');
+      text($('refresh-banner-time'), '…');
+    }
+  }
+
+  refreshFlight = (async () => {
+    try {
+      const data = await request('/api/accounts', { signal: controller.signal });
+      if (version !== refreshVersion) return;
+      lastUpdated = Date.now();
+      text($('last-updated'), 'Son kontrol ' + timeAgo(lastUpdated));
+      setConnection('');
+
+      currentAccountsData = data.accounts || [];
+      currentProxyData = data.proxy || {};
+      const accounts = currentAccountsData;
+      const proxy = currentProxyData;
+
+      updateHero(accounts, proxy);
+      text($('tab-count-accounts'), String(accounts.length));
+      loadSwitchHistory(false);
+
+      const container = $('accounts');
+      const seen = new Set();
+      const allChanges = [];
+
+      accounts.forEach(acc => {
+        const key = getCardKey(acc);
+        seen.add(key);
+        let card = cardMap.get(key);
+        if (!card) {
+          card = buildAccountCard(key);
+          cardMap.set(key, card);
+          container.appendChild(card.element);
+        }
+        const changes = updateAccountCard(card, acc, isManualRefresh);
+        if (changes && changes.length > 0) {
+          allChanges.push({ email: acc.email || 'Hesap', changes });
+        }
+      });
+
+      for (const [key, card] of cardMap.entries()) {
+        if (!seen.has(key)) {
+          card.element.remove();
+          cardMap.delete(key);
+          quotaHistoryCache.delete(key);
+        }
+      }
+
+      const emptyState = $('empty-state');
+      if (emptyState) emptyState.hidden = accounts.length > 0;
+
+      if (isManualRefresh && banner) {
+        const elapsedMs = Math.round(performance.now() - startTime);
+        text($('refresh-banner-time'), `${elapsedMs} ms`);
+
+        if (proxy && proxy.ok === false) {
+          banner.className = 'banner is-error';
+          text($('refresh-banner-icon'), '⚠');
+          text($('refresh-banner-text'), 'Proxy API kullanılamıyor');
+          text($('refresh-banner-sub'), 'Hesap kotaları okunamadı. Antigravity servisini kontrol edin.');
+          refreshBtn.classList.remove('is-loading');
+          refreshBtn.classList.add('is-error');
+        } else if (allChanges.length > 0) {
+          banner.className = 'banner is-delta';
+          text($('refresh-banner-icon'), '⚡');
+          text($('refresh-banner-text'), `Limit değişimi · ${allChanges.length} hesap`);
+          const summary = allChanges.map(c => {
+            const who = c.email.split('@')[0];
+            const parts = c.changes.map(ch => `${ch.label} ${ch.prev}→${ch.curr}`);
+            return `${who} (${parts.join(', ')})`;
+          }).join(' · ');
+          text($('refresh-banner-sub'), summary);
+          refreshBtn.classList.remove('is-loading');
+          refreshBtn.classList.add('is-delta');
+        } else {
+          banner.className = 'banner is-success';
+          text($('refresh-banner-icon'), '✓');
+          text($('refresh-banner-text'), 'Limitler güncellendi · değişim yok');
+          text($('refresh-banner-sub'), `${accounts.length} Google hesabı okundu ve senkronize edildi.`);
+          refreshBtn.classList.remove('is-loading');
+          refreshBtn.classList.add('is-success');
+        }
+
+        clearTimeout(bannerTimer);
+        bannerTimer = setTimeout(() => {
+          if (!refreshFlight) {
+            refreshBtn.classList.remove('is-loading', 'is-success', 'is-delta', 'is-error');
+          }
+        }, 4000);
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      setConnection('Sunucuya bağlanılamadı: ' + err.message);
+      if (isManualRefresh && banner) {
+        banner.className = 'banner is-error';
+        text($('refresh-banner-icon'), '⚠');
+        text($('refresh-banner-text'), 'Bağlantı hatası');
+        text($('refresh-banner-sub'), err.message || 'Bilinmeyen hata');
+        text($('refresh-banner-time'), 'hata');
+        refreshBtn.classList.remove('is-loading');
+        refreshBtn.classList.add('is-error');
+      }
+    } finally {
+      refreshFlight = null;
+      refreshBtn.classList.remove('is-loading');
+      refreshBtn.disabled = false;
+      syncButtons();
+    }
+  })();
+  return refreshFlight;
+}
+
+const cardMap = new Map();
+
+/* ------------------------------------------------------------ eylemler --- */
+async function handleAction(card, btn) {
+  if (busy || !navigator.onLine || btn.disabled || btn.dataset.locked === 'true') return;
+  const action = btn.dataset.action;
+  const acc = card.data || {};
+  const email = acc.email;
+  const accountId = acc.proxy?.id;
+  const home = acc.dir;
+  const feedback = card.element.querySelector('.action-feedback');
+  const original = btn.textContent;
+
+  busy = true;
+  syncButtons();
+  try {
+    if (action === 'switch') {
+      btn.textContent = 'Seçiliyor…';
+      await request('/api/proxy/switch', {
+        body: {
+          account_id: accountId,
+          email,
+          trigger: 'manual',
+          reason: 'Panel üzerinden seçildi: ' + email,
+        },
+      });
+      await Promise.all([loadSnapshot(true), loadSwitchHistory(true)]);
+    } else if (action === 'test') {
+      if (feedback) { feedback.hidden = false; feedback.className = 'feedback'; text(feedback, 'CLI testi yürütülüyor…'); }
+      await request('/api/test', { body: { home } });
+      if (feedback) { feedback.className = 'feedback ok'; text(feedback, 'CLI testi başarılı.'); }
+    } else if (action === 'import') {
+      if (feedback) { feedback.hidden = false; feedback.className = 'feedback'; text(feedback, "OMP'ye aktarılıyor…"); }
+      await request('/api/import', { body: { home, email } });
+      if (feedback) { feedback.className = 'feedback ok'; text(feedback, 'google-antigravity kaydı OMP vault içine aktarıldı.'); }
+      await loadSnapshot(true);
+    }
+  } catch (err) {
+    if (feedback) { feedback.className = 'feedback err'; text(feedback, err.message); feedback.hidden = false; }
+    else setConnection('İşlem başarısız: ' + err.message);
+  } finally {
+    btn.textContent = original;
+    busy = false;
+    syncButtons();
+  }
+}
+
+$('next-account').addEventListener('click', async () => {
+  if (busy || !navigator.onLine) return;
+  const nextAcc = nextProxyAccount();
+  if (!nextAcc) return;
+
+  busy = true;
+  syncButtons();
+  try {
+    await request('/api/proxy/switch', {
+      body: {
+        account_id: nextAcc.proxy.id,
+        email: nextAcc.email,
+        trigger: 'rotate',
+        reason: 'Panel sonraki uygun hesap butonu ile seçildi: ' + nextAcc.email,
+      },
+    });
+    await Promise.all([loadSnapshot(true), loadSwitchHistory(true)]);
+  } catch (err) {
+    setConnection('Hesap geçişi başarısız: ' + err.message);
+  } finally {
+    busy = false;
+    syncButtons();
+  }
+});
+
+$('clear-pin-btn').addEventListener('click', async () => {
+  if (busy || !navigator.onLine) return;
+  busy = true;
+  syncButtons();
+  try {
+    await request('/api/proxy/clear-pin', { method: 'POST' });
+    await Promise.all([loadSnapshot(true), loadSwitchHistory(true)]);
+  } catch (err) {
+    setConnection('Havuza dönüş hatası: ' + err.message);
+  } finally {
+    busy = false;
+    syncButtons();
+  }
+});
+
+$('auto-btn').addEventListener('click', async () => {
+  if (busy || !navigator.onLine) return;
+  busy = true;
+  syncButtons();
+  try {
+    await request('/api/proxy/auto', { method: 'POST' });
+    await Promise.all([loadSnapshot(true), loadSwitchHistory(true)]);
+  } catch (err) {
+    setConnection('Otomatik moda dönüş hatası: ' + err.message);
+  } finally {
+    busy = false;
+    syncButtons();
+  }
+});
+
+$('refresh').addEventListener('click', () => loadSnapshot(true, true));
+
+const bannerCloseBtn = $('refresh-banner-close');
+if (bannerCloseBtn) {
+  bannerCloseBtn.addEventListener('click', () => {
+    const banner = $('refresh-banner');
+    if (banner) banner.hidden = true;
+  });
+}
+
+/* ---------------------------------------------------------- giriş akışı --- */
+let flowPollTimer = null;
+
+function stopFlowPolling() {
+  clearInterval(flowPollTimer);
+  flowPollTimer = null;
+}
+
+function openLoginModal() {
+  const modal = $('login-modal');
+  const body = $('login-modal-body');
+  if (!modal || !body) return;
+  modal.hidden = false;
+  body.innerHTML = `
+    <form id="login-email-form">
+      <div class="modal-label">Google e-posta</div>
+      <input type="email" id="login-email-input" class="input" placeholder="ornek@gmail.com" autocomplete="email" required />
+      <div class="modal-row" style="margin-top:8px;">
+        <button type="submit" id="login-email-submit" class="btn btn-primary">Başlat</button>
+        <button type="button" id="login-email-cancel" class="btn">Vazgeç</button>
+      </div>
+    </form>`;
+  const input = $('login-email-input');
+  if (input) input.focus();
+}
+
+function closeLoginModal(stopFlow) {
+  const modal = $('login-modal');
+  if (modal) modal.hidden = true;
+  stopFlowPolling();
+  if (stopFlow) {
+    request('/api/stop', { method: 'POST' }).catch(() => {});
+  }
+}
+
+$('login-modal-close').addEventListener('click', () => closeLoginModal(true));
+$('login-start').addEventListener('click', () => {
+  if (busy || !navigator.onLine) return;
+  openLoginModal();
+});
+
+function renderFlowState(flow) {
+  const body = $('login-modal-body');
+  if (!body) return;
+  const phase = flow.phase;
+  const active = flow.active;
+  const url = flow.url || '';
+
+  if (!active && phase !== 'success' && phase !== 'error') {
+    body.innerHTML = `
+      <form id="login-email-form">
+        <div class="modal-label">Google e-posta</div>
+        <input type="email" id="login-email-input" class="input" placeholder="ornek@gmail.com" autocomplete="email" required />
+        <div class="modal-row" style="margin-top:8px;">
+          <button type="submit" id="login-email-submit" class="btn btn-primary">Başlat</button>
+          <button type="button" id="login-email-cancel" class="btn">Vazgeç</button>
+        </div>
+      </form>`;
+    bindEmailForm();
+    return;
+  }
+
+  if (phase === 'waiting-code' || phase === 'menu') {
+    body.innerHTML = `
+      <div class="modal-status">${escapeHtml(flow.note || 'Giriş bekleniyor…')}</div>
+      ${url ? `<a class="url-box" href="${escapeHtml(url)}" target="_blank" rel="noreferrer noopener">${escapeHtml(url)}</a>` : ''}
+      <form id="flow-code-form">
+        <div class="modal-label">Doğrulama kodu</div>
+        <input type="text" id="flow-code-input" class="input" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" />
+        <div class="modal-row" style="margin-top:8px;">
+          <button type="submit" id="flow-code-submit" class="btn btn-primary">Kodu gönder</button>
+          <button type="button" id="flow-newlink-btn" class="btn">Yeni link</button>
+          <button type="button" id="flow-waiting-cancel" class="btn">Vazgeç</button>
+        </div>
+      </form>
+      <div class="log-box" id="flow-log">${escapeHtml(flow.log || '')}</div>`;
+
+    const form = $('flow-code-form');
+    if (form) {
+      form.addEventListener('submit', async event => {
+        event.preventDefault();
+        const input = $('flow-code-input');
+        const code = input ? input.value.trim() : '';
+        if (!code) return;
+        const submitBtn = $('flow-code-submit');
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Gönderiliyor…'; }
+        try {
+          await request('/api/code', { body: { code } });
+        } catch (err) {
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Kodu gönder'; }
+          const box = $('flow-log');
+          if (box) box.textContent = (box.textContent || '') + '\n' + err.message;
+        }
+      });
+    }
+
+    const newLinkBtn = $('flow-newlink-btn');
+    if (newLinkBtn) {
+      newLinkBtn.addEventListener('click', async () => {
+        try { await request('/api/newlink', { method: 'POST' }); }
+        catch (err) { setConnection('Yeni link isteği başarısız: ' + err.message); }
+      });
+    }
+    const cancelBtn = $('flow-waiting-cancel');
+    if (cancelBtn) cancelBtn.addEventListener('click', () => closeLoginModal(true));
+    const codeInput = $('flow-code-input');
+    if (codeInput) codeInput.focus();
+    return;
+  }
+
+  if (phase === 'success') {
+    const result = flow.result || {};
+    const imp = result.omp_import || {};
+    body.innerHTML = `
+      <div class="modal-status ok">Giriş tamamlandı · ${escapeHtml(result.email || flow.email || '')}</div>
+      <div class="modal-status${imp.ok ? ' ok' : ''}">${escapeHtml(imp.ok ? 'OMP vault’a aktarıldı' : ('OMP aktarımı: ' + String(imp.err || 'bekliyor')))}</div>
+      <button type="button" id="flow-success-done" class="btn btn-primary" style="align-self:flex-start;">Kapat</button>`;
+    const done = $('flow-success-done');
+    if (done) done.addEventListener('click', () => { closeLoginModal(false); loadSnapshot(true); });
+    return;
+  }
+
+  if (phase === 'error') {
+    body.innerHTML = `
+      <div class="modal-status err">${escapeHtml(flow.note || 'Giriş başarısız')}</div>
+      <div class="log-box">${escapeHtml(flow.log || '')}</div>
+      <div class="modal-row">
+        <button type="button" id="flow-err-retry" class="btn btn-primary">Yeniden dene</button>
+        <button type="button" id="flow-err-close" class="btn">Kapat</button>
+      </div>`;
+    const retry = $('flow-err-retry');
+    if (retry) {
+      retry.addEventListener('click', async () => {
+        try { await request('/api/stop', { method: 'POST' }); } catch (e) {}
+        openLoginModal();
+      });
+    }
+    const close = $('flow-err-close');
+    if (close) close.addEventListener('click', () => closeLoginModal(true));
+  }
+}
+
+function bindEmailForm() {
+  const form = $('login-email-form');
+  if (!form) return;
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const input = $('login-email-input');
+    const email = input ? input.value.trim() : '';
+    if (!email) return;
+    const submitBtn = $('login-email-submit');
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Başlatılıyor…'; }
+    try {
+      const res = await request('/api/login', { body: { email } });
+      if (res.ok) {
+        const body = $('login-modal-body');
+        if (body) {
+          body.innerHTML = '<div class="modal-status"><span class="spin">↻</span> Giriş oturumu başlatıldı…</div>';
+        }
+        startFlowPolling();
+      } else {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Başlat'; }
+      }
+    } catch (err) {
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Başlat'; }
+      const body = $('login-modal-body');
+      if (body) {
+        const note = document.createElement('div');
+        note.className = 'modal-status err';
+        note.textContent = err.message;
+        body.appendChild(note);
+      }
+    }
+  });
+  const cancel = $('login-email-cancel');
+  if (cancel) cancel.addEventListener('click', () => closeLoginModal(false));
+}
+
+function startFlowPolling() {
+  stopFlowPolling();
+  flowPollTimer = setInterval(async () => {
+    try {
+      const flow = await request('/api/flow');
+      renderFlowState(flow);
+      if (flow.phase === 'success' || flow.phase === 'stopped') {
+        stopFlowPolling();
+        if (flow.phase === 'success') loadSnapshot(true);
+      }
+    } catch (err) {
+      console.warn('Flow poll hatası:', err);
+      stopFlowPolling();
+    }
+  }, 1500);
+}
+
+/* --------------------------------------------------------- geçiş günlüğü --- */
+let switchHistoryItems = [];
+let currentHistoryFilter = 'all';
+let currentHistorySearch = '';
+let historyLimit = 60;
+let historyFlight = null;
+let historyError = '';
+
+async function loadSwitchHistory(force = false) {
+  if (historyFlight) return historyFlight;
+  const refreshBtn = $('history-refresh-btn');
+  if (refreshBtn) refreshBtn.classList.add('is-loading');
+
+  historyFlight = (async () => {
+    try {
+      const res = await request(`/api/switch-history?limit=${historyLimit}`);
+      const items = res?.items || res?.history;
+      if (res && res.ok && Array.isArray(items)) {
+        switchHistoryItems = items;
+        historyError = '';
+        updateHistoryCounters(res.total, items);
+        renderSwitchHistory();
+        const loadAllBtn = $('history-load-all');
+        if (loadAllBtn) loadAllBtn.hidden = (res.total || 0) <= items.length;
+        const note = $('history-status-note');
+        if (note) {
+          text(note, items.length < (res.total || 0)
+            ? `${items.length} / ${res.total} kayıt gösteriliyor`
+            : `${items.length} kayıt`);
+        }
+      }
+    } catch (err) {
+      historyError = err.message || 'Bilinmeyen hata';
+      const container = $('history-timeline');
+      if (container && switchHistoryItems.length === 0) {
+        container.innerHTML = '';
+      }
+      const empty = $('history-empty');
+      if (empty) {
+        empty.hidden = false;
+        empty.className = 'empty err';
+        text(empty, 'Günlük yüklenemedi · ' + historyError);
+      }
+      console.error('Geçiş geçmişi yüklenemedi:', err);
+    } finally {
+      if (refreshBtn) refreshBtn.classList.remove('is-loading');
+      historyFlight = null;
+    }
+  })();
+  return historyFlight;
+}
+
+function updateHistoryCounters(total, items) {
+  const totalCount = total || items.length;
+  text($('tab-count-history'), String(totalCount));
+  text($('h-cnt-all'), String(totalCount));
+
+  let schedCount = 0, manualCount = 0, poolCount = 0;
+  items.forEach(it => {
+    if (it.trigger === 'scheduler') schedCount++;
+    else if (it.trigger === 'manual') manualCount++;
+    else if (it.trigger === 'round_robin' || it.trigger === 'warmup') poolCount++;
+  });
+  text($('h-cnt-scheduler'), String(schedCount));
+  text($('h-cnt-manual'), String(manualCount));
+  text($('h-cnt-pool'), String(poolCount));
+}
+
+function historyBarClass(trigger) {
+  if (trigger === 'scheduler') return 'scheduler';
+  if (trigger === 'manual') return 'manual';
+  if (trigger === 'round_robin') return 'pool';
+  if (trigger === 'warmup') return 'warmup';
+  return 'system';
+}
+
+function renderSwitchHistory() {
+  const container = $('history-timeline');
+  const emptyState = $('history-empty');
+  if (!container) return;
+
+  const search = currentHistorySearch.trim().toLowerCase();
+
+  const filtered = switchHistoryItems.filter(item => {
+    if (currentHistoryFilter !== 'all') {
+      if (currentHistoryFilter === 'round_robin') {
+        if (item.trigger !== 'round_robin' && item.trigger !== 'warmup') return false;
+      } else if (item.trigger !== currentHistoryFilter) {
+        return false;
+      }
+    }
+    if (!search) return true;
+    const haystack = [
+      item.from_account, item.to_account, item.reason,
+      item.trigger_label, item.trigger, item.family, item.raw,
+    ].filter(Boolean).join(' ').toLowerCase();
+    return haystack.includes(search);
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = '';
+    if (emptyState) {
+      emptyState.hidden = false;
+      emptyState.className = 'empty';
+      text(emptyState, historyError
+        ? 'Günlük yüklenemedi · ' + historyError
+        : 'Kriterlere uygun geçiş kaydı yok.');
+    }
+    return;
+  }
+
+  if (emptyState) {
+    emptyState.hidden = true;
+    emptyState.className = 'empty';
+  }
+
+  const html = filtered.map(item => {
+    const trigger = String(item.trigger || 'system');
+    const bar = historyBarClass(trigger);
+    const label = escapeHtml(item.trigger_label || trigger);
+    const time = escapeHtml(formatHistoryDate(item.timestamp));
+    const fromAcc = escapeHtml(item.from_account || '—');
+    const toAcc = escapeHtml(item.to_account || '—');
+    const reason = escapeHtml(item.reason || 'Kayıtlı neden yok');
+    const raw = item.raw
+      ? `<details class="entry-raw"><summary>Ham sistem kaydı</summary><pre>${escapeHtml(item.raw)}</pre></details>`
+      : '';
+    const family = item.family
+      ? `<span class="entry-family">${escapeHtml(String(item.family).toUpperCase())}</span>`
+      : '';
+    // Aynı hesap için kayıt (warmup vb.) tek satırda gösterilir, yinelenen yol satırı düşer.
+    const sameTarget = item.from_account && item.from_account === item.to_account;
+    const route = sameTarget
+      ? `<div class="entry-route"><span class="entry-acc">${toAcc}</span></div>`
+      : `<div class="entry-route">
+          <span class="entry-acc dim">${fromAcc}</span>
+          <span class="entry-arrow">→</span>
+          <span class="entry-acc">${toAcc}</span>
+        </div>`;
+
+    return `
+      <article class="history-entry">
+        <div class="entry-bar ${bar}" aria-hidden="true"></div>
+        <div class="entry-body">
+          <div class="entry-top">
+            <span class="entry-trigger">${label}${family}</span>
+            <span class="entry-time">${time}</span>
+          </div>
+          ${route}
+          <div class="entry-reason" title="${reason}">${reason}</div>
+          ${raw}
+        </div>
+      </article>`;
+  }).join('');
+
+  container.innerHTML = html;
+}
+
+const filterGroup = $('history-filters');
+if (filterGroup) {
+  filterGroup.addEventListener('click', event => {
+    const pill = event.target.closest('.filter-pill');
+    if (!pill) return;
+    filterGroup.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    currentHistoryFilter = pill.dataset.filter || 'all';
+    renderSwitchHistory();
+  });
+}
+
+const historySearchInput = $('history-search');
+if (historySearchInput) {
+  historySearchInput.addEventListener('input', event => {
+    currentHistorySearch = event.target.value;
+    renderSwitchHistory();
+  });
+}
+
+const historyRefreshBtn = $('history-refresh-btn');
+if (historyRefreshBtn) {
+  historyRefreshBtn.addEventListener('click', () => loadSwitchHistory(true));
+}
+
+const historyLoadAllBtn = $('history-load-all');
+if (historyLoadAllBtn) {
+  historyLoadAllBtn.addEventListener('click', () => {
+    historyLimit = 500;
+    historyLoadAllBtn.hidden = true;
+    loadSwitchHistory(true);
+  });
+}
+
+/* ------------------------------------------------------------- başlangıç --- */
+setInterval(() => {
+  if (navigator.onLine && !document.hidden && !busy) {
+    loadSnapshot(false);
+    loadSwitchHistory(false);
+  }
+}, 60000);
+
+initTheme();
+initTabs();
+loadSnapshot(true);
+loadSwitchHistory(true);
+</script>
+</body>
+</html>
